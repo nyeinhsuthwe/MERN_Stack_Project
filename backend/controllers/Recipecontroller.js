@@ -1,5 +1,8 @@
+const removefile = require("../helpers/removefile");
 const Recipe = require("../models/Recipe");
 const mongoose = require('mongoose');
+const User = require("../models/User");
+const emailQueue = require('../queues/emailQueue');
 
 const RecipeController = {
     index : async (req,res) => {
@@ -35,15 +38,39 @@ const RecipeController = {
         };
         return res.json(response);
     },
+
+
     store : async (req,res) => {
-        const {title,description,ingredients} = req.body;
-        const recipe = await Recipe.create({
-            title,
-            description,
-            ingredients
-        });
-        return res.json(recipe);
+        try {
+            const {title,description,ingredients} = req.body;
+            const recipe = await Recipe.create({
+                title,
+                description,
+                ingredients
+            });
+
+            let users = await User.find(null,['email']);
+            let emails = users.map(user => user.email);
+            emails = emails.filter(email => email !=  req.user.email)
+            
+            //email queue
+            emailQueue.add({
+                view : 'email',
+                data : {
+                    name : req.user.name,
+                    recipe
+                },
+                from : req.user.email,
+                to : emails,//[],"hlaingminthan@gmail.com"
+                subject : "New Recipe is created by someone."
+            });
+            return res.json(recipe);
+        }catch(e) {
+            return res.status(500).json({ msg :e.message});
+        }
     },
+
+
     show : async (req,res) => {
         try {
             let id = req.params.id;
@@ -59,6 +86,8 @@ const RecipeController = {
             return res.status(500).json({ msg : 'internet server error'});
         }
     },
+
+
     destroy :async (req,res) => {
         try {
             let id = req.params.id;
@@ -66,6 +95,9 @@ const RecipeController = {
                 return res.status(400).json({ msg : 'not a valid id'});
             }
             let recipe = await Recipe.findByIdAndDelete(id);
+            removefile(__dirname+ "/../public" + recipe.photo)
+
+
             if(!recipe) {
                 return res.status(404).json({ msg : 'recipe not found'});
             }
@@ -74,6 +106,8 @@ const RecipeController = {
             return res.status(500).json({ msg : 'internet server error'});
         }
     },
+
+
     update : async (req,res) => {
         try {
             let id = req.params.id;
@@ -91,6 +125,30 @@ const RecipeController = {
             return res.status(500).json({ msg : 'internet server error'});
         }
     },
+
+
+    upload: async(req,res)=>{
+        try{
+            let id = req.params.id;
+            if(!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ msg : 'not a valid id'});
+            }
+            let recipe = await Recipe.findByIdAndUpdate(id, {
+                photo : '/'+req.file.filename
+            });
+
+            await removefile(__dirname+ "/../public" + recipe.photo)
+
+            if(!recipe) {
+                return res.status(404).json({ msg : 'recipe not found'});
+            }
+            return res.json(recipe);
+        }
+        catch(e){
+            console.log(e);
+            return res.status(500).json({ msg : 'internet server error'});
+        }
+    }
 };
 
 module.exports = RecipeController;

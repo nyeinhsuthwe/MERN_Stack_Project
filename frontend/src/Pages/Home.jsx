@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import RecipeCard from '../Components/RecipeCard'
-import { useLocation } from 'react-router-dom';
-import Pagination from "../Components/Pagination";
-import {useNavigate} from 'react-router-dom'
+import RecipeCard from '../Components/RecipeCard';
+import Pagination from '../Components/Pagination';
+import { useLocation, useNavigate } from 'react-router-dom';
+import axios from "../helpers/axios";
 
 export default function Home() {
 
@@ -13,14 +13,15 @@ export default function Home() {
     let location = useLocation();
     let searchQuery = new URLSearchParams(location.search);
     let page = searchQuery.get('page'); // string
-    page = parseInt(page); //int
+    page = parseInt(page)? parseInt(page) : 1 ;//int
 
 
     useEffect(() => {
         let fetchRecipes = async () => {
-            let response = await fetch('http://localhost:4000/api/recipes?page=' + page);
-            if (response.ok) {
-                let data = await response.json();
+            let response = await axios('/api/recipes?page=' + page);
+            console.log(response);
+            if (response.status === 200) {
+                let data = response.data;
 
                 setLinks(data.links)
                 setRecipes(data.data);
@@ -43,12 +44,14 @@ export default function Home() {
     }
 
     return (
-        <div className="space-y-3">
+        <>
+        <div className="space-x-3 space-y-3 grid grid-cols-3">
             {!!recipes.length && (recipes.map(recipe => (
                 <RecipeCard recipe={recipe} key={recipe._id} onDeleted={onDeleted} />
             ))
             )}
-            {!!links && <Pagination links={links} page={page || 1} />}
         </div>
+        {!!links && <Pagination links={links} page={page || 1} />}
+        </>
     )
 }

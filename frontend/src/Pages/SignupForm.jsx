@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from 'axios';
+import axios from '../helpers/axios';
 
 
 export default function SignUpForm() {
@@ -19,7 +19,7 @@ export default function SignUpForm() {
                 email,
                 password
             }
-            let res = await axios.post('http://localhost:4000/api/users/register', data, {
+            let res = await axios.post('/api/users/register', data, {
                 withCredentials: true
             });
             if (res.status === 200) {

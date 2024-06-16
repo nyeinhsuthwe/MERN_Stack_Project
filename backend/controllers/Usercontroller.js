@@ -2,6 +2,9 @@ const User = require('../models/User');
 const createToken = require('../helpers/createToken');
 
 const UserController = {
+    me : async (req,res) => {
+        return res.json(req.user);
+    },
     login : async (req,res) => {
         try {
             let {email,password} = req.body;
@@ -23,6 +26,11 @@ const UserController = {
         }catch(e) {
             return res.status(400).json({error : e.message});
         }
+    },
+
+    logout: async(req,res)=>{
+        res.cookie('jwt','', {  maxAge : 1});
+        return res.json({message:'user logged out'});
     }
 }
 

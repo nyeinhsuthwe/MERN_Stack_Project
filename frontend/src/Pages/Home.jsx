@@ -7,13 +7,14 @@ import axios from "../helpers/axios";
 export default function Home() {
 
     let [recipes, setRecipes] = useState([]);
+    
     let [links, setLinks] = useState(null);
     let navigate = useNavigate();
 
     let location = useLocation();
     let searchQuery = new URLSearchParams(location.search);
     let page = searchQuery.get('page'); // string
-    page = parseInt(page)? parseInt(page) : 1 ;//int
+    page = parseInt(page) ? parseInt(page) : 1; //int
 
 
     useEffect(() => {
@@ -45,13 +46,13 @@ export default function Home() {
 
     return (
         <>
-        <div className="space-x-3 space-y-3 grid grid-cols-3">
-            {!!recipes.length && (recipes.map(recipe => (
-                <RecipeCard recipe={recipe} key={recipe._id} onDeleted={onDeleted} />
-            ))
-            )}
-        </div>
-        {!!links && <Pagination links={links} page={page || 1} />}
+            <div className="grid grid-cols-3 space-x-2 space-y-3">
+                {!!recipes.length && (recipes.map(recipe => (
+                    <RecipeCard recipe={recipe} key={recipe._id} onDeleted={onDeleted} />
+                ))
+                )}
+            </div>
+            {!!links && <Pagination links={links} page={page || 1} />}
         </>
     )
 }

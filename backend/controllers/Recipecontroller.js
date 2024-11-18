@@ -61,7 +61,7 @@ const RecipeController = {
                     recipe
                 },
                 from : req.user.email,
-                to : emails,//[],"hlaingminthan@gmail.com"
+                to : emails,
                 subject : "New Recipe is created by someone."
             });
             return res.json(recipe);
